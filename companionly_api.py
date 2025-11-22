@@ -1,0 +1,182 @@
+# ----------------------------------------------------------------------
+# COMPANIONLY FASTAPI INFERENCE API: Safety Gateway for Zapier.
+# Configured for deployment on Render, pulling the GPT-2 model from the 
+# Hugging Face Hub (ID: Gvakili9/companionly-gpt2).
+# ----------------------------------------------------------------------
+import joblib
+import os
+import sys
+import re
+import string
+import nltk
+from nltk.corpus import stopwords
+from typing import Optional
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+from pydantic import BaseModel
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
+import torch
+
+# --- CONFIGURATION & GLOBAL VARS ---
+
+# File Paths (Deployment requires these in the root directory for LR model)
+CRISIS_MODEL_PATH = "crisis_detection_model.pkl"
+VECTORIZER_PATH = "tfidf_vectorizer.pkl"
+
+# CRITICAL: Hugging Face Model ID for generative model download
+# NOTE: This must be the public repository ID you created.
+GPT2_MODEL_HUB_ID = "Gvakili9/companionly-gpt2" 
+
+# CRITICAL SAFETY MESSAGE (Your final script)
+CRISIS_RESPONSE = (
+    "I’m really glad you reached out. I’m concerned you may be in danger. If you’re in the U.S. or Canada, "
+    "please call or text 988 (Suicide & Crisis Lifeline). If you are outside these regions, please "
+    "contact your local emergency number immediately. If you’re not in immediate danger but need someone "
+    "to talk to, I’m here to listen."
+)
+
+# Global variables for loaded models
+crisis_model = None
+vectorizer = None
+gpt2_model = None
+gpt2_tokenizer = None
+# Determine device for PyTorch models
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# --- MODEL LOADING FUNCTIONS ---
+
+def load_crisis_detector():
+    """Loads the TF-IDF vectorizer and Logistic Regression model from local deployment files."""
+    global crisis_model, vectorizer
+    print("Loading Crisis Detection Models...")
+    
+    if not os.path.exists(CRISIS_MODEL_PATH) or not os.path.exists(VECTORIZER_PATH):
+        print(f"ERROR: Missing .pkl files. Check if they were uploaded to GitHub.")
+        raise FileNotFoundError("Critical crisis models (PKL files) not found.")
+            
+    try:
+        crisis_model = joblib.load(CRISIS_MODEL_PATH)
+        vectorizer = joblib.load(VECTORIZER_PATH)
+        # Ensure NLTK stopwords are downloaded/available for cleaning function
+        try: stopwords.words('english')
+        except LookupError: nltk.download('stopwords', quiet=True)
+        print("Crisis detection models loaded successfully.")
+    except Exception as e:
+        print(f"FATAL ERROR loading crisis models: {e}")
+        raise RuntimeError("Failed to initialize crisis models.")
+
+
+def load_generative_model():
+    """Loads the fine-tuned GPT-2 conversational model from the Hugging Face Hub."""
+    global gpt2_model, gpt2_tokenizer
+    print(f"Loading GPT-2 Model ID: {GPT2_MODEL_HUB_ID} onto {device}...")
+    
+    try:
+        # This function automatically handles downloading the model files from the Hub
+        gpt2_tokenizer = GPT2Tokenizer.from_pretrained(GPT2_MODEL_HUB_ID)
+        gpt2_model = GPT2LMHeadModel.from_pretrained(GPT2_MODEL_HUB_ID).to(device)
+        print("GPT-2 model loaded successfully from Hub.")
+    except Exception as e:
+        print(f"FATAL ERROR loading GPT-2 model from Hub. Ensure ID is correct and token is set if private. Error: {e}")
+        # Note: Render often lacks a GPU, so this might fall back to CPU silently.
+        raise RuntimeError("Failed to load GPT-2 model from Hugging Face Hub.")
+
+# --- LIFESPAN HANDLER (Fixes Deprecation Warning) ---
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initializes models on startup and cleans up on shutdown."""
+    print("--- API STARTUP: Loading models into memory ---")
+    try:
+        load_crisis_detector()
+        load_generative_model()
+    except Exception as e:
+        print(f"API Initialization Failed: {e}")
+        # This exception will prevent the application from starting
+        sys.exit(1)
+        
+    yield
+    # Shutdown logic (optional)
+    print("--- API SHUTDOWN: Cleaning up resources ---")
+
+
+# Initialize FastAPI App with Lifespan
+app = FastAPI(title="Companionly Safety Gateway API", lifespan=lifespan)
+
+# Pydantic Model for incoming message payload
+class MessageIn(BaseModel):
+    user_message: str
+
+# --- UTILITY FUNCTIONS ---
+
+def clean_text_for_lr(text):
+    """Preprocessing function matching the one used during LR training."""
+    stop_words = set(stopwords.words('english'))
+    text = str(text).lower()
+    text = re.sub(r'http\S+|www\S+', '', text)        
+    text = re.sub(r'@[A-Za-z0-9_]+', '', text)          
+    text = re.sub(r'#[A-Za-z0-9_]+', '', text)          
+    text = text.translate(str.maketrans('', '', string.punctuation))
+    text = re.sub(r'\d+', '', text)                    
+    text = ' '.join(word for word in text.split() if word not in stop_words)
+    return text.strip()
+
+def generate_gpt2_response(prompt: str) -> str:
+    """Generates an empathetic response using the fine-tuned GPT-2 model."""
+    input_text = f"User: {prompt} Companionly:"
+    input_ids = gpt2_tokenizer.encode(input_text, return_tensors='pt').to(device)
+    
+    output = gpt2_model.generate(
+        input_ids,
+        max_length=150,
+        num_return_sequences=1,
+        no_repeat_ngram_size=2,
+        do_sample=True,
+        top_k=50,
+        top_p=0.95,
+        temperature=0.7,
+        pad_token_id=gpt2_tokenizer.eos_token_id
+    )
+    
+    response = gpt2_tokenizer.decode(output[0], skip_special_tokens=True)
+    
+    # Extract only the bot's response segment
+    if "Companionly:" in response:
+        response = response.split("Companionly:")[-1].strip()
+    
+    if "User:" in response:
+        response = response.split("User:")[0].strip()
+        
+    return response
+
+# --- API ENDPOINT ---
+
+@app.post("/chat")
+async def chat_endpoint(message: MessageIn):
+    """
+    Primary endpoint for Zapier webhook.
+    1. Runs crisis detection.
+    2. Returns immediate crisis response OR calls GPT-2 for support response.
+    """
+    user_text = message.user_message
+    
+    if not user_text or len(user_text.strip()) < 3:
+        return {"status": "support", "response": "I didn't quite catch that. Can you tell me a little more?"}
+
+    # 1. CRISIS DETECTION
+    cleaned_text = clean_text_for_lr(user_text)
+    text_tfidf = vectorizer.transform([cleaned_text])
+    prediction = crisis_model.predict(text_tfidf)[0]
+
+    if prediction == 1:
+        # SAFETY GATEWAY: Crisis detected
+        return {"status": "crisis", "response": CRISIS_RESPONSE}
+    else:
+        # NON-CRISIS: Generative response
+        try:
+            generated_response = generate_gpt2_response(user_text)
+            return {"status": "support", "response": generated_response}
+        except Exception:
+            # Fallback for GPT-2 generation failure
+            return {"status": "support", "response": "I'm having a little trouble connecting right now, but please know I'm listening."}
