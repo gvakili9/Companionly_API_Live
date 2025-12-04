@@ -8,7 +8,7 @@ Original file is located at
 """
 
 # ----------------------------------------------------------------------
-# COMPANIONLY FASTAPI INFERENCE API (MVP)
+# COMPANIONLY FASTAPI INFERENCE API (MVP) - companionly_api.py
 # This file contains ONLY the required Python logic for Render deployment.
 # It includes the CORS middleware fix and model loading setup.
 # ----------------------------------------------------------------------
