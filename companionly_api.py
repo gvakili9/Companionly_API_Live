@@ -1,307 +1,200 @@
-{
- "cells": [
-  {
-   "cell_type": "code",
-   "execution_count": 1,
-   "metadata": {},
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Requirement already satisfied: fastapi in c:\\users\\ggold\\anaconda3\\lib\\site-packages (0.121.3)\n",
-      "Requirement already satisfied: uvicorn in c:\\users\\ggold\\anaconda3\\lib\\site-packages (0.38.0)\n",
-      "Requirement already satisfied: pydantic in c:\\users\\ggold\\anaconda3\\lib\\site-packages (2.8.2)\n",
-      "Requirement already satisfied: transformers in c:\\users\\ggold\\anaconda3\\lib\\site-packages (4.41.2)\n",
-      "Requirement already satisfied: torch in c:\\users\\ggold\\anaconda3\\lib\\site-packages (2.9.0)\n",
-      "Requirement already satisfied: joblib in c:\\users\\ggold\\anaconda3\\lib\\site-packages (1.5.0)\n",
-      "Requirement already satisfied: nltk in c:\\users\\ggold\\anaconda3\\lib\\site-packages (3.9.2)\n",
-      "Requirement already satisfied: scikit-learn in c:\\users\\ggold\\anaconda3\\lib\\site-packages (1.7.2)\n",
-      "Requirement already satisfied: starlette<0.51.0,>=0.40.0 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from fastapi) (0.50.0)\n",
-      "Requirement already satisfied: typing-extensions>=4.8.0 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from fastapi) (4.15.0)\n",
-      "Requirement already satisfied: annotated-doc>=0.0.2 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from fastapi) (0.0.4)\n",
-      "Requirement already satisfied: click>=7.0 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from uvicorn) (8.1.7)\n",
-      "Requirement already satisfied: h11>=0.8 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from uvicorn) (0.14.0)\n",
-      "Requirement already satisfied: annotated-types>=0.4.0 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from pydantic) (0.6.0)\n",
-      "Requirement already satisfied: pydantic-core==2.20.1 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from pydantic) (2.20.1)\n",
-      "Requirement already satisfied: filelock in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from transformers) (3.13.1)\n",
-      "Requirement already satisfied: huggingface-hub<1.0,>=0.23.0 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from transformers) (0.23.0)\n",
-      "Requirement already satisfied: numpy>=1.17 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from transformers) (1.26.4)\n",
-      "Requirement already satisfied: packaging>=20.0 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from transformers) (25.0)\n",
-      "Requirement already satisfied: pyyaml>=5.1 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from transformers) (6.0.1)\n",
-      "Requirement already satisfied: regex!=2019.12.17 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from transformers) (2024.9.11)\n",
-      "Requirement already satisfied: requests in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from transformers) (2.32.3)\n",
-      "Requirement already satisfied: tokenizers<0.20,>=0.19 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from transformers) (0.19.1)\n",
-      "Requirement already satisfied: safetensors>=0.4.1 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from transformers) (0.6.2)\n",
-      "Requirement already satisfied: tqdm>=4.27 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from transformers) (4.66.5)\n",
-      "Requirement already satisfied: sympy>=1.13.3 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from torch) (1.14.0)\n",
-      "Requirement already satisfied: networkx>=2.5.1 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from torch) (3.3)\n",
-      "Requirement already satisfied: jinja2 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from torch) (3.1.4)\n",
-      "Requirement already satisfied: fsspec>=0.8.5 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from torch) (2024.3.1)\n",
-      "Requirement already satisfied: setuptools in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from torch) (80.9.0)\n",
-      "Requirement already satisfied: scipy>=1.8.0 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from scikit-learn) (1.13.1)\n",
-      "Requirement already satisfied: threadpoolctl>=3.1.0 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from scikit-learn) (3.5.0)\n",
-      "Requirement already satisfied: colorama in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from click>=7.0->uvicorn) (0.4.6)\n",
-      "Requirement already satisfied: anyio<5,>=3.6.2 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from starlette<0.51.0,>=0.40.0->fastapi) (4.2.0)\n",
-      "Requirement already satisfied: mpmath<1.4,>=1.1.0 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from sympy>=1.13.3->torch) (1.3.0)\n",
-      "Requirement already satisfied: MarkupSafe>=2.0 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from jinja2->torch) (2.1.3)\n",
-      "Requirement already satisfied: charset-normalizer<4,>=2 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from requests->transformers) (3.3.2)\n",
-      "Requirement already satisfied: idna<4,>=2.5 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from requests->transformers) (3.7)\n",
-      "Requirement already satisfied: urllib3<3,>=1.21.1 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from requests->transformers) (2.2.3)\n",
-      "Requirement already satisfied: certifi>=2017.4.17 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from requests->transformers) (2025.11.12)\n",
-      "Requirement already satisfied: sniffio>=1.1 in c:\\users\\ggold\\anaconda3\\lib\\site-packages (from anyio<5,>=3.6.2->starlette<0.51.0,>=0.40.0->fastapi) (1.3.0)\n",
-      "All dependencies for FastAPI, Crisis Detection, and GPT-2 are now installed.\n"
-     ]
-    }
-   ],
-   "source": [
-    "# CODE TO INSTALL ALL NECESSARY DEPENDENCIES\n",
-    "\n",
-    "# This file combines the needed packages for the web service (FastAPI, uvicorn) \n",
-    "# and the machine learning models (transformers, torch, joblib, nltk, scikit-learn).\n",
-    "# If deploying to Render, you would typically list these in a requirements.txt file.\n",
-    "\n",
-    "# Install the dependencies in a Jupyter/Colab environment:\n",
-    "!pip install fastapi uvicorn pydantic transformers torch joblib nltk scikit-learn\n",
-    "\n",
-    "print(\"All dependencies for FastAPI, Crisis Detection, and GPT-2 are now installed.\")"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 2,
-   "metadata": {
-    "id": "EWmj_-RmHSCa"
-   },
-   "outputs": [],
-   "source": [
-    "# ----------------------------------------------------------------------\n",
-    "# COMPANIONLY FASTAPI INFERENCE API: Safety Gateway for Zapier.\n",
-    "# Configured for deployment on Render, pulling the GPT-2 model from the \n",
-    "# Hugging Face Hub (ID: Gvakili9/companionly-gpt2).\n",
-    "# ----------------------------------------------------------------------\n",
-    "import joblib\n",
-    "import os\n",
-    "import sys\n",
-    "import re\n",
-    "import string\n",
-    "import nltk\n",
-    "from nltk.corpus import stopwords\n",
-    "from typing import Optional\n",
-    "from contextlib import asynccontextmanager\n",
-    "\n",
-    "from fastapi import FastAPI\n",
-    "from pydantic import BaseModel\n",
-    "from transformers import GPT2LMHeadModel, GPT2Tokenizer\n",
-    "import torch\n",
-    "from fastapi.middleware.cors import CORSMiddleware # IMPORT ADDED FOR CORS\n",
-    "\n",
-    "# --- CONFIGURATION & GLOBAL VARS ---\n",
-    "\n",
-    "# File Paths (Deployment requires these in the root directory for LR model)\n",
-    "CRISIS_MODEL_PATH = \"crisis_detection_model.pkl\"\n",
-    "VECTORIZER_PATH = \"tfidf_vectorizer.pkl\"\n",
-    "\n",
-    "# CRITICAL: Hugging Face Model ID for generative model download\n",
-    "# NOTE: This must be the public repository ID you created.\n",
-    "GPT2_MODEL_HUB_ID = \"Gvakili9/companionly-gpt2\" \n",
-    "\n",
-    "# CRITICAL SAFETY MESSAGE (Your final script)\n",
-    "CRISIS_RESPONSE = (\n",
-    "    \"I’m really glad you reached out. I’m concerned you may be in danger. If you’re in the U.S. or Canada, \"\n",
-    "    \"please call or text 988 (Suicide & Crisis Lifeline). If you are outside these regions, please \"\n",
-    "    \"contact your local emergency number immediately. If you’re not in immediate danger but need someone \"\n",
-    "    \"to talk to, I’m here to listen.\"\n",
-    ")\n",
-    "\n",
-    "# Global variables for loaded models\n",
-    "crisis_model = None\n",
-    "vectorizer = None\n",
-    "gpt2_model = None\n",
-    "gpt2_tokenizer = None\n",
-    "# Determine device for PyTorch models\n",
-    "device = torch.device(\"cuda\" if torch.cuda.is_available() else \"cpu\")\n",
-    "\n",
-    "# --- MODEL LOADING FUNCTIONS ---\n",
-    "\n",
-    "def load_crisis_detector():\n",
-    "    \"\"\"Loads the TF-IDF vectorizer and Logistic Regression model from local deployment files.\"\"\"\n",
-    "    global crisis_model, vectorizer\n",
-    "    print(\"Loading Crisis Detection Models...\")\n",
-    "    \n",
-    "    if not os.path.exists(CRISIS_MODEL_PATH) or not os.path.exists(VECTORIZER_PATH):\n",
-    "        print(f\"ERROR: Missing .pkl files. Check if they were uploaded to GitHub.\")\n",
-    "        raise FileNotFoundError(\"Critical crisis models (PKL files) not found.\")\n",
-    "            \n",
-    "    try:\n",
-    "        crisis_model = joblib.load(CRISIS_MODEL_PATH)\n",
-    "        vectorizer = joblib.load(VECTORIZER_PATH)\n",
-    "        # Ensure NLTK stopwords are downloaded/available for cleaning function\n",
-    "        try: stopwords.words('english')\n",
-    "        except LookupError: nltk.download('stopwords', quiet=True)\n",
-    "        print(\"Crisis detection models loaded successfully.\")\n",
-    "    except Exception as e:\n",
-    "        print(f\"FATAL ERROR loading crisis models: {e}\")\n",
-    "        raise RuntimeError(\"Failed to initialize crisis models.\")\n",
-    "\n",
-    "\n",
-    "def load_generative_model():\n",
-    "    \"\"\"Loads the fine-tuned GPT-2 conversational model from the Hugging Face Hub.\"\"\"\n",
-    "    global gpt2_model, gpt2_tokenizer\n",
-    "    print(f\"Loading GPT-2 Model ID: {GPT2_MODEL_HUB_ID} onto {device}...\")\n",
-    "    \n",
-    "    try:\n",
-    "        # This function automatically handles downloading the model files from the Hub\n",
-    "        gpt2_tokenizer = GPT2Tokenizer.from_pretrained(GPT2_MODEL_HUB_ID)\n",
-    "        gpt2_model = GPT2LMHeadModel.from_pretrained(GPT2_MODEL_HUB_ID).to(device)\n",
-    "        print(\"GPT-2 model loaded successfully from Hub.\")\n",
-    "    except Exception as e:\n",
-    "        print(f\"FATAL ERROR loading GPT-2 model from Hub. Ensure ID is correct and token is set if private. Error: {e}\")\n",
-    "        # Note: Render often lacks a GPU, so this might fall back to CPU silently.\n",
-    "        raise RuntimeError(\"Failed to load GPT-2 model from Hugging Face Hub.\")\n",
-    "\n",
-    "# --- LIFESPAN HANDLER (Fixes Deprecation Warning) ---\n",
-    "\n",
-    "@asynccontextmanager\n",
-    "async def lifespan(app: FastAPI):\n",
-    "    \"\"\"Initializes models on startup and cleans up on shutdown.\"\"\"\n",
-    "    print(\"--- API STARTUP: Loading models into memory ---\")\n",
-    "    try:\n",
-    "        load_crisis_detector()\n",
-    "        load_generative_model()\n",
-    "    except Exception as e:\n",
-    "        print(f\"API Initialization Failed: {e}\")\n",
-    "        # This exception will prevent the application from starting\n",
-    "        sys.exit(1)\n",
-    "        \n",
-    "    yield\n",
-    "    # Shutdown logic (optional)\n",
-    "    print(\"--- API SHUTDOWN: Cleaning up resources ---\")\n",
-    "\n",
-    "\n",
-    "# Initialize FastAPI App with Lifespan\n",
-    "app = FastAPI(title=\"Companionly Safety Gateway API\", lifespan=lifespan)\n",
-    "\n",
-    "# --- ADD CORS MIDDLEWARE ---\n",
-    "app.add_middleware(\n",
-    "    CORSMiddleware,\n",
-    "    # IMPORTANT: Allowing all origins for MVP. Replace \"*\" with your Vercel URL for production security.\n",
-    "    allow_origins=[\"*\"], \n",
-    "    allow_credentials=True,\n",
-    "    allow_methods=[\"*\"],\n",
-    "    allow_headers=[\"*\"],\n",
-    ")\n",
-    "# --- END CORS MIDDLEWARE ---\n",
-    "\n",
-    "\n",
-    "# Pydantic Model for incoming message payload\n",
-    "class MessageIn(BaseModel):\n",
-    "    user_message: str\n",
-    "\n",
-    "# --- UTILITY FUNCTIONS ---\n",
-    "\n",
-    "def clean_text_for_lr(text):\n",
-    "    \"\"\"Preprocessing function matching the one used during LR training.\"\"\"\n",
-    "    stop_words = set(stopwords.words('english'))\n",
-    "    text = str(text).lower()\n",
-    "    text = re.sub(r'http\\S+|www\\S+', '', text)        \n",
-    "    text = re.sub(r'@[A-Za-z0-9_]+', '', text)          \n",
-    "    text = re.sub(r'#[A-Za-z0-9_]+', '', text)          \n",
-    "    text = text.translate(str.maketrans('', '', string.punctuation))\n",
-    "    text = re.sub(r'\\d+', '', text)                    \n",
-    "    text = ' '.join(word for word in text.split() if word not in stop_words)\n",
-    "    return text.strip()\n",
-    "\n",
-    "def generate_gpt2_response(prompt: str) -> str:\n",
-    "    \"\"\"Generates an empathetic response using the fine-tuned GPT-2 model.\"\"\"\n",
-    "    input_text = f\"User: {prompt} Companionly:\"\n",
-    "    input_ids = gpt2_tokenizer.encode(input_text, return_tensors='pt').to(device)\n",
-    "    \n",
-    "    output = gpt2_model.generate(\n",
-    "        input_ids,\n",
-    "        max_length=150,\n",
-    "        num_return_sequences=1,\n",
-    "        no_repeat_ngram_size=2,\n",
-    "        do_sample=True,\n",
-    "        top_k=50,\n",
-    "        top_p=0.95,\n",
-    "        temperature=0.7,\n",
-    "        pad_token_id=gpt2_tokenizer.eos_token_id\n",
-    "    )\n",
-    "    \n",
-    "    response = gpt2_tokenizer.decode(output[0], skip_special_tokens=True)\n",
-    "    \n",
-    "    # Extract only the bot's response segment\n",
-    "    if \"Companionly:\" in response:\n",
-    "        response = response.split(\"Companionly:\")[-1].strip()\n",
-    "    \n",
-    "    if \"User:\" in response:\n",
-    "        response = response.split(\"User:\")[0].strip()\n",
-    "        \n",
-    "    return response\n",
-    "\n",
-    "# --- API ENDPOINT ---\n",
-    "\n",
-    "@app.post(\"/chat\")\n",
-    "async def chat_endpoint(message: MessageIn):\n",
-    "    \"\"\"\n",
-    "    Primary endpoint for chat interface.\n",
-    "    1. Runs crisis detection.\n",
-    "    2. Returns immediate crisis response OR calls GPT-2 for support response.\n",
-    "    \"\"\"\n",
-    "    user_text = message.user_message\n",
-    "    \n",
-    "    if not user_text or len(user_text.strip()) < 3:\n",
-    "        return {\"status\": \"support\", \"response\": \"I didn't quite catch that. Can you tell me a little more?\"}\n",
-    "\n",
-    "    # 1. CRISIS DETECTION\n",
-    "    cleaned_text = clean_text_for_lr(user_text)\n",
-    "    text_tfidf = vectorizer.transform([cleaned_text])\n",
-    "    prediction = crisis_model.predict(text_tfidf)[0]\n",
-    "\n",
-    "    if prediction == 1:\n",
-    "        # SAFETY GATEWAY: Crisis detected\n",
-    "        return {\"status\": \"crisis\", \"response\": CRISIS_RESPONSE}\n",
-    "    else:\n",
-    "        # NON-CRISIS: Generative response\n",
-    "        try:\n",
-    "            generated_response = generate_gpt2_response(user_text)\n",
-    "            return {\"status\": \"support\", \"response\": generated_response}\n",
-    "        except Exception:\n",
-    "            # Fallback for GPT-2 generation failure\n",
-    "            return {\"status\": \"support\", \"response\": \"I'm having a little trouble connecting right now, but please know I'm listening.\"}"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": []
-  }
- ],
- "metadata": {
-  "colab": {
-   "provenance": []
-  },
-  "kernelspec": {
-   "display_name": "Python [conda env:base] *",
-   "language": "python",
-   "name": "conda-base-py"
-  },
-  "language_info": {
-   "codemirror_mode": {
-    "name": "ipython",
-    "version": 3
-   },
-   "file_extension": ".py",
-   "mimetype": "text/x-python",
-   "name": "python",
-   "nbconvert_exporter": "python",
-   "pygments_lexer": "ipython3",
-   "version": "3.12.7"
-  }
- },
- "nbformat": 4,
- "nbformat_minor": 4
-}
+# -*- coding: utf-8 -*-
+"""Companionly FastAPI Inference API
+
+Automatically generated by Colab.
+
+Original file is located at
+    https://colab.research.google.com/drive/15rgUUkBrJijc1dxORMFqXtnJJbfPtmXc
+"""
+
+# ----------------------------------------------------------------------
+# COMPANIONLY FASTAPI INFERENCE API (MVP)
+# This file contains ONLY the required Python logic for Render deployment.
+# It includes the CORS middleware fix and model loading setup.
+# ----------------------------------------------------------------------
+import joblib
+import os
+import sys
+import re
+import string
+import nltk
+from nltk.corpus import stopwords
+from typing import Optional
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+from pydantic import BaseModel
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
+import torch
+from fastapi.middleware.cors import CORSMiddleware
+
+# --- CONFIGURATION & GLOBAL VARS ---
+
+# File Paths (Deployment requires these in the root directory for LR model)
+CRISIS_MODEL_PATH = "crisis_detection_model.pkl"
+VECTORIZER_PATH = "tfidf_vectorizer.pkl"
+
+# CRITICAL: Hugging Face Model ID for generative model download
+GPT2_MODEL_HUB_ID = "Gvakili9/companionly-gpt2"
+
+# CRITICAL SAFETY MESSAGE (Your final script)
+CRISIS_RESPONSE = (
+    "I’m really glad you reached out. I’m concerned you may be in danger. If you’re in the U.S. or Canada, "
+    "please call or text 988 (Suicide & Crisis Lifeline). If you are outside these regions, please "
+    "contact your local emergency number immediately. If you’re not in immediate danger but need someone "
+    "to talk to, I’m here to listen."
+)
+
+# Global variables for loaded models
+crisis_model = None
+vectorizer = None
+gpt2_model = None
+gpt2_tokenizer = None
+# Determine device for PyTorch models
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# --- MODEL LOADING FUNCTIONS ---
+
+def load_crisis_detector():
+    """Loads the TF-IDF vectorizer and Logistic Regression model from local deployment files."""
+    global crisis_model, vectorizer
+    print("Loading Crisis Detection Models...")
+
+    if not os.path.exists(CRISIS_MODEL_PATH) or not os.path.exists(VECTORIZER_PATH):
+        print(f"ERROR: Missing .pkl files. Check if they were uploaded to GitHub.")
+        raise FileNotFoundError("Critical crisis models (PKL files) not found.")
+
+    try:
+        crisis_model = joblib.load(CRISIS_MODEL_PATH)
+        vectorizer = joblib.load(VECTORIZER_PATH)
+        # Ensure NLTK stopwords are downloaded/available for cleaning function
+        try: stopwords.words('english')
+        except LookupError: nltk.download('stopwords', quiet=True)
+        print("Crisis detection models loaded successfully.")
+    except Exception as e:
+        print(f"FATAL ERROR loading crisis models: {e}")
+        raise RuntimeError("Failed to initialize crisis models.")
+
+
+def load_generative_model():
+    """Loads the fine-tuned GPT-2 conversational model from the Hugging Face Hub."""
+    global gpt2_model, gpt2_tokenizer
+    print(f"Loading GPT-2 Model ID: {GPT2_MODEL_HUB_ID} onto {device}...")
+
+    try:
+        # This function automatically handles downloading the model files from the Hub
+        gpt2_tokenizer = GPT2Tokenizer.from_pretrained(GPT2_MODEL_HUB_ID)
+        gpt2_model = GPT2LMHeadModel.from_pretrained(GPT2_MODEL_HUB_ID).to(device)
+        print("GPT-2 model loaded successfully from Hub.")
+    except Exception as e:
+        print(f"FATAL ERROR loading GPT-2 model from Hub. Ensure ID is correct and token is set if private. Error: {e}")
+        raise RuntimeError("Failed to load GPT-2 model from Hugging Face Hub.")
+
+# --- LIFESPAN HANDLER ---
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initializes models on startup and cleans up on shutdown."""
+    print("--- API STARTUP: Loading models into memory ---")
+    try:
+        load_crisis_detector()
+        load_generative_model()
+    except Exception as e:
+        print(f"API Initialization Failed: {e}")
+        sys.exit(1)
+
+    yield
+    print("--- API SHUTDOWN: Cleaning up resources ---")
+
+
+# Initialize FastAPI App with Lifespan
+app = FastAPI(title="Companionly Safety Gateway API", lifespan=lifespan)
+
+# --- ADD CORS MIDDLEWARE ---
+app.add_middleware(
+    CORSMiddleware,
+    # IMPORTANT: Allowing all origins for MVP. Replace "*" with your Vercel URL for production security.
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+# --- END CORS MIDDLEWARE ---
+
+
+# Pydantic Model for incoming message payload
+class MessageIn(BaseModel):
+    user_message: str
+
+# --- UTILITY FUNCTIONS ---
+
+def clean_text_for_lr(text):
+    """Preprocessing function matching the one used during LR training."""
+    stop_words = set(stopwords.words('english'))
+    text = str(text).lower()
+    text = re.sub(r'http\S+|www\S+', '', text)
+    text = re.sub(r'@[A-Za-z0-9_]+', '', text)
+    text = re.sub(r'#[A-Za-z0-9_]+', '', text)
+    text = text.translate(str.maketrans('', '', string.punctuation))
+    text = re.sub(r'\d+', '', text)
+    text = ' '.join(word for word in text.split() if word not in stop_words)
+    return text.strip()
+
+def generate_gpt2_response(prompt: str) -> str:
+    """Generates an empathetic response using the fine-tuned GPT-2 model."""
+    input_text = f"User: {prompt} Companionly:"
+    input_ids = gpt2_tokenizer.encode(input_text, return_tensors='pt').to(device)
+
+    output = gpt2_model.generate(
+        input_ids,
+        max_length=150,
+        num_return_sequences=1,
+        no_repeat_ngram_size=2,
+        do_sample=True,
+        top_k=50,
+        top_p=0.95,
+        temperature=0.7,
+        pad_token_id=gpt2_tokenizer.eos_token_id
+    )
+
+    response = gpt2_tokenizer.decode(output[0], skip_special_tokens=True)
+
+    # Extract only the bot's response segment
+    if "Companionly:" in response:
+        response = response.split("Companionly:")[-1].strip()
+
+    if "User:" in response:
+        response = response.split("User:")[0].strip()
+
+    return response
+
+# --- API ENDPOINT ---
+
+@app.post("/chat")
+async def chat_endpoint(message: MessageIn):
+    """
+    Primary endpoint for chat interface.
+    1. Runs crisis detection.
+    2. Returns immediate crisis response OR calls GPT-2 for support response.
+    """
+    user_text = message.user_message
+
+    if not user_text or len(user_text.strip()) < 3:
+        return {"status": "support", "response": "I didn't quite catch that. Can you tell me a little more?"}
+
+    # 1. CRISIS DETECTION
+    cleaned_text = clean_text_for_lr(user_text)
+    text_tfidf = vectorizer.transform([cleaned_text])
+    prediction = crisis_model.predict(text_tfidf)[0]
+
+    if prediction == 1:
+        # SAFETY GATEWAY: Crisis detected
+        return {"status": "crisis", "response": CRISIS_RESPONSE}
+    else:
+        # NON-CRISIS: Generative response
+        try:
+            generated_response = generate_gpt2_response(user_text)
+            return {"status": "support", "response": generated_response}
+        except Exception:
+            # Fallback for GPT-2 generation failure
+            return {"status": "support", "response": "I'm having a little trouble connecting right now, but please know I'm listening."}
