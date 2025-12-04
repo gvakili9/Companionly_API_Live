@@ -179,7 +179,7 @@ async def chat_endpoint(message: MessageIn):
     """
     user_text = message.user_message
 
-    if not user_text or len(user_text.strip()) < 3:
+    if not user_text or len(user_text.strip()) < 1:
         return {"status": "support", "response": "I didn't quite catch that. Can you tell me a little more?"}
 
     # 1. CRISIS DETECTION
